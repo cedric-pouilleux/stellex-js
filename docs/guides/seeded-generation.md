@@ -476,6 +476,27 @@ Le client vérifie automatiquement que trois hydratations consécutives sont str
 
 ## 10. Intégration côté jeu
 
+### Trois moments distincts à séparer
+
+Avant de plonger dans le schéma DB, lever une confusion fréquente. Un body passe par trois états différents que l'on a tendance à confondre :
+
+| Moment | État | Lieu | Action |
+| ------ | ---- | ---- | ------ |
+| **Création du système** | Paramètres **déterminés** | Mathématique pure | INSERT system. Les seeds de chaque orbit (`${systemId}:orbit-${idx}`) sont fixées dès cet instant. |
+| **Visite / affichage** | Paramètres **calculés** | CPU pur (microsecondes) | `generateBodyConfig(seed, constraints)` rejouable à l'infini. Aucune écriture DB. |
+| **Première observation** | Paramètres **persistés et verrouillés** | DB | INSERT body. Bloque le `genVersion` contre les futures évolutions de règles ; ouvre un emplacement pour les overrides. |
+
+Le malentendu classique : *« le body prend ses paramètres au moment de la visite »*. **Faux**. Les paramètres sont déterminés à la création du système (parce que la seed est fixée à ce moment-là). La visite ne fait que les **calculer** — résultat identique à chaque appel parce que `generateBodyConfig` est une pure fonction. La première observation ne **crée** pas non plus les paramètres — elle les **fige** contre les futures mises à jour de règles, en stockant le `genVersion` courant en DB.
+
+Conséquence pratique :
+
+- Avant observation : `generateBodyConfig` est appelé à chaque visite. Si tu changes les règles entre deux visites, le body apparaît différemment. Acceptable tant que personne ne s'y est attaché.
+- Après observation : `generateBodyConfig` est rappelé à chaque visite, mais **avec le `gen_version` stocké en DB** — ce qui pin le code aux anciennes règles. Le body reste byte-stable même si tu rebalance le game design.
+
+::: tip Analogie
+Penser à `π` : son 47ᵉ décimale est **déterminée** dès que tu décides de regarder π en base 10. Elle est **calculée** quand tu ouvres une calculatrice. Et tu peux la **persister** sur un papier si tu veux la garder à l'identique même après une réforme des chiffres.
+:::
+
 ### Schéma DB recommandé
 
 ```sql
@@ -497,7 +518,7 @@ CREATE TABLE system_claim (
   PRIMARY KEY (system_id, claim_type)
 );
 
--- Body — uniquement matérialisé après "first observation" (lazy gen)
+-- Body — row créée uniquement à la première observation (cf. ci-dessous)
 CREATE TABLE body (
   id            UUID PRIMARY KEY,
   system_id     UUID REFERENCES system NOT NULL,
@@ -511,13 +532,17 @@ CREATE TABLE body (
 -- Pas besoin de stocker la `seed` — recalculée via `${system_id}:orbit-${orbit_index}`.
 ```
 
-### Lazy generation + freeze on observation
+### Lazy persistence + freeze on observation
 
-Pattern recommandé pour faire évoluer les règles de game design **sans régression visuelle** pour les joueurs :
+Stratégie recommandée pour évoluer les règles de game design **sans régression visuelle** pour les joueurs.
 
-1. **Visite d'un secteur jamais exploré** : le serveur émet les `BodyDescriptor` de chaque orbit du système à la volée. **Aucun INSERT en DB** — les bodies n'existent pas encore physiquement.
+::: warning À ne pas confondre
+Cette sous-section parle de **quand persister** un body en DB et **quand verrouiller** son `genVersion`. Les paramètres du body, eux, sont déterminés depuis la création du système (cf. §10.1) et calculables à tout instant via `generateBodyConfig`. La persistance et le verrouillage sont des décisions opérationnelles, pas le moment où le body « prend ses paramètres ».
+:::
 
-2. **Premier clic d'un joueur sur une planète** : le serveur **matérialise** le body en DB :
+1. **Visite d'un secteur jamais exploré** : le serveur émet les `BodyDescriptor` de chaque orbit à la volée. **Aucun INSERT en DB** — les bodies sont calculés (et rendus) sans laisser de trace persistante. Si tu changes les règles entre deux visites avant qu'aucun joueur n'observe, ils apparaîtront différemment au prochain affichage. Acceptable.
+
+2. **Premier clic d'un joueur sur une planète (first observation)** : le serveur **persiste** une row pour ce body et **verrouille** le `genVersion` courant :
 
    ```ts
    INSERT INTO body (system_id, orbit_index, zone_id, gen_version, overrides)
@@ -525,17 +550,19 @@ Pattern recommandé pour faire évoluer les règles de game design **sans régre
    ON CONFLICT (system_id, orbit_index) DO NOTHING
    ```
 
-   À partir de ce moment, le body a une row stable. Les overrides s'accumulent dessus.
+   À partir de ce moment, deux choses sont acquises :
+   - Le `gen_version` est stocké → toutes les hydratations futures utilisent les règles de la **version 1**, même après une mise à jour du code.
+   - Une row existe → les overrides gameplay (terraformation, mining) ont un emplacement stable où s'accumuler.
 
 3. **Mise à jour du game design** (ex: rebalance des ranges) :
    - Bumpez la `genVersion` du nouveau code à `2`.
-   - Bodies déjà matérialisés (`gen_version = 1`) : **inchangés**. Leur seed + leur ancien gen_version donne toujours le même rendu.
-   - Bodies non-observés : générés avec `gen_version = 2` et donc les nouvelles règles.
+   - Bodies déjà observés (`gen_version = 1`) : **inchangés visuellement**. Le client les hydrate en chargeant les règles version 1 (que tu maintiens en parallèle des nouvelles dans `shared/zones-v1.ts`).
+   - Bodies non-observés : recalculés avec les règles version 2 à chaque affichage. Le jour où un joueur en observe un, sa row sera créée avec `gen_version = 2`.
 
 Cette stratégie réconcilie *« on doit pouvoir équilibrer le jeu »* avec *« on ne doit pas changer la planète préférée d'un joueur »*.
 
 ::: tip Variante hard-freeze
-Pour une garantie encore plus forte, vous pouvez stocker côté DB la **config résolue complète** (radius, masse, noise…) à la matérialisation. Coût : ~5-10 Ko par body observé. Avantage : la planète est totalement immune aux changements de PRNG, de namespace, de séquence. À considérer si vous prévoyez beaucoup de refactos sur le générateur.
+Si tu veux garantir l'identité visuelle même contre des refactos profonds du PRNG, du namespacing ou de la séquence interne de `generateBodyConfig`, persiste la **config résolue complète** (radius, masse, noise, terrainColors, …) à la première observation. Coût : ~5-10 Ko par body observé en JSONB. Avantage : la planète est totalement décorrélée du code de génération courant. À considérer si tu prévois beaucoup d'évolutions sur le générateur ou si tu veux un audit trail visuel complet.
 :::
 
 ### Validation des overrides côté serveur
