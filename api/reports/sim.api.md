@@ -68,6 +68,21 @@ export const DEFAULT_TILE_SIZE = 0.05;
 export function deriveCoreRadiusRatio(gasMassFraction: number): number;
 
 // @public
+export type FeatureGate = {
+    mode: 'forbidden';
+} | {
+    mode: 'required';
+    range: NumericRange;
+} | {
+    mode: 'allowed';
+    probability: number;
+    range: NumericRange;
+};
+
+// @public
+export function generateBodyConfig(seed: string, constraints: ZoneConstraints): PlanetConfig;
+
+// @public
 export function generateHexasphere(radius: number, subdivisions: number): HexasphereData;
 
 // @public
@@ -104,6 +119,9 @@ export interface MetallicBand {
     metalness?: number;
     roughness?: number;
 }
+
+// @public
+export type NumericRange = readonly [min: number, max: number];
 
 // @public
 export type PlanetConfig = PlanetIdentity & PlanetPhysics & BodyNoiseProfile & PlanetVisualProfile;
@@ -189,6 +207,9 @@ export interface ResolvedStarData {
 export function resolveStarData(cfg: StarPhysicsInput): ResolvedStarData;
 
 // @public
+export type SeededBodyArchetype = Exclude<LibBodyType, 'star'>;
+
+// @public
 export function seededPrng(seed: string): () => number;
 
 // @public (undocumented)
@@ -248,6 +269,57 @@ export function toStarParams(cfg: StarPhysicsInput): {
     radius: number;
     tempK: number;
 };
+
+// @public
+export interface ZoneConstraints {
+    archetype: SeededBodyArchetype;
+    features: ZoneFeatureGates;
+    ranges: ZoneRanges;
+}
+
+// @public
+export interface ZoneFeatureGates {
+    atmosphere: FeatureGate;
+    liquid: FeatureGate;
+    rings: FeatureGate;
+}
+
+// @public
+export interface ZoneRanges {
+    // (undocumented)
+    atmosphereOpacity: NumericRange;
+    // (undocumented)
+    atmosphereThickness: NumericRange;
+    // (undocumented)
+    axialTilt: NumericRange;
+    // (undocumented)
+    continentAmount: NumericRange;
+    // (undocumented)
+    continentScale: NumericRange;
+    // (undocumented)
+    coreRadiusRatio: NumericRange;
+    // (undocumented)
+    liquidCoverage: NumericRange;
+    // (undocumented)
+    mass: NumericRange;
+    // (undocumented)
+    noiseLacunarity: NumericRange;
+    noiseOctaves: NumericRange;
+    // (undocumented)
+    noisePersistence: NumericRange;
+    // (undocumented)
+    noisePower: NumericRange;
+    // (undocumented)
+    noiseRidge: NumericRange;
+    // (undocumented)
+    noiseScale: NumericRange;
+    // (undocumented)
+    radius: NumericRange;
+    // (undocumented)
+    reliefFlatness: NumericRange;
+    // (undocumented)
+    rotationSpeed: NumericRange;
+}
 
 // (No @packageDocumentation comment for this package)
 

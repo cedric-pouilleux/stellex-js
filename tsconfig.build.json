@@ -25,5 +25,5 @@
     "tsBuildInfoFile":    null
   },
   "include": ["sim.ts", "core.ts", "index.ts", "**/*.ts", "**/*.vue"],
-  "exclude": ["**/*.spec.ts", "vite.build.config.ts", "vitest.config.ts", "scripts/**", "dist", "node_modules", "playground", "docs"]
+  "exclude": ["**/*.spec.ts", "vite.build.config.ts", "vitest.config.ts", "scripts/**", "dist", "node_modules", "playground", "docs", "examples"]
 }

@@ -103,3 +103,18 @@ export { initBodySimulation } from './sim/BodySimulation'
 // stay deterministic by reusing the lib's PRNG. Scope your seeds:
 // `seededPrng(config.name + ':resources')`.
 export { seededPrng } from './internal/prng'
+
+// ── Seeded body generation (pure logic — backend-safe) ──────────
+// `generateBodyConfig(seed, constraints)` turns a seed + a zone
+// envelope (feature gates + numeric ranges) into a deterministic
+// `PlanetConfig`. Pure function; safe to call from backend code
+// without pulling any rendering dependency.
+export type {
+  NumericRange,
+  FeatureGate,
+  SeededBodyArchetype,
+  ZoneFeatureGates,
+  ZoneRanges,
+  ZoneConstraints,
+} from './types/generation.types'
+export { generateBodyConfig } from './render/body/generateBodyConfig'
