@@ -37,6 +37,39 @@ const _sunWP    = new THREE.Vector3()
 const _dir      = new THREE.Vector3()
 
 /**
+ * Optional hooks accepted by {@link useBody} — light source, palette
+ * override, hover-cursor presets, render-quality knobs.
+ *
+ * Every field is optional: leaving the object empty (or omitted) yields a
+ * lib-default body. Fields are documented inline so IntelliSense surfaces
+ * the rationale at the call site.
+ */
+export interface UseBodyOptions {
+  /**
+   * Light source illuminating the body. On every `tick()`, the lib reads
+   * `sunLight.getWorldPosition()`, computes a normalized planet→sun
+   * direction and pushes it into the body shader (and atmo shell). Pass
+   * a single `PointLight` shared across all bodies of the same star
+   * system — the same instance that lives in the scene as the visible
+   * light source. Bodies without rings or atmosphere simply ignore it
+   * if absent (the shader keeps its last known direction, defaulting to
+   * the +X axis at construction time).
+   */
+  sunLight?:         THREE.PointLight | THREE.DirectionalLight | null
+  palette?:          TerrainLevel[]
+  hoverChannel?:     HoverChannel
+  graphicsUniforms?: GraphicsUniforms
+  quality?:          RenderQuality
+  variation?:        import('./bodyVariation').BodyVariation
+  /** Hover cursor parameters — single style. */
+  hoverCursor?:      HoverCursorConfig
+  /** Hover cursor presets — multiple named styles, swapped at runtime. */
+  hoverCursors?:     HoverCursorPresets
+  /** Initial preset name when `hoverCursors` is supplied. */
+  defaultCursor?:    string
+}
+
+/**
  * Factory that builds a complete celestial body — hex mesh, interactive
  * raycast proxy, smooth display mesh, atmosphere glow, rings and effect
  * layers — deterministically from a {@link BodyConfig}.
@@ -48,35 +81,12 @@ const _dir      = new THREE.Vector3()
  * @param config    - Physics + visual configuration of the body.
  * @param tileSize  - Target world-space tile edge length (drives subdivisions
  *                    on both sol and atmo hexaspheres).
- * @param options   - Optional hooks — sun light source, palette override.
+ * @param options   - Optional hooks — see {@link UseBodyOptions}.
  */
 export function useBody(
   config: BodyConfig,
   tileSize: number,
-  options?: {
-    /**
-     * Light source illuminating the body. On every `tick()`, the lib reads
-     * `sunLight.getWorldPosition()`, computes a normalized planet→sun
-     * direction and pushes it into the body shader (and atmo shell). Pass
-     * a single `PointLight` shared across all bodies of the same star
-     * system — the same instance that lives in the scene as the visible
-     * light source. Bodies without rings or atmosphere simply ignore it
-     * if absent (the shader keeps its last known direction, defaulting to
-     * the +X axis at construction time).
-     */
-    sunLight?:         THREE.PointLight | THREE.DirectionalLight | null
-    palette?:          TerrainLevel[]
-    hoverChannel?:     HoverChannel
-    graphicsUniforms?: GraphicsUniforms
-    quality?:          RenderQuality
-    variation?:        import('./bodyVariation').BodyVariation
-    /** Hover cursor parameters — single style. */
-    hoverCursor?:      HoverCursorConfig
-    /** Hover cursor presets — multiple named styles, swapped at runtime. */
-    hoverCursors?:     HoverCursorPresets
-    /** Initial preset name when `hoverCursors` is supplied. */
-    defaultCursor?:    string
-  },
+  options?: UseBodyOptions,
 ): Body {
   const hoverChannel     = options?.hoverChannel     ?? createHoverChannel()
   const graphicsUniforms = options?.graphicsUniforms ?? createGraphicsUniforms()

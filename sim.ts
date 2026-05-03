@@ -117,4 +117,4 @@ export type {
   ZoneRanges,
   ZoneConstraints,
 } from './types/generation.types'
-export { generateBodyConfig } from './render/body/generateBodyConfig'
+export { generateBodyConfig } from './sim/generateBodyConfig'

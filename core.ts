@@ -113,7 +113,6 @@ export type {
 
 // ── Rendering ────────────────────────────────────────────────────
 export {
-  DEFAULT_TILE_SIZE,
   DEFAULT_CORE_RADIUS_RATIO,
   resolveTerrainLevelCount,
   resolveAtmosphereThickness,
@@ -129,6 +128,7 @@ export {
   resolveTileLevel,
   choosePalette,
 } from './render/body/useBody'
+export type { UseBodyOptions } from './render/body/useBody'
 // Pure derivation: BodyConfig + variation → shader params. Exposed so
 // callers can preview the resolved uniforms (UI panes, debugging,
 // thumbnails) without having to build a full body. No GPU resource is

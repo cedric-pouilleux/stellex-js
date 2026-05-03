@@ -28,15 +28,15 @@
  * side and re-rolls every persisted body.
  */
 
-import { seededPrng } from '../../internal/prng'
-import type { PlanetConfig } from '../../types/body/config.types'
-import type { SurfaceLook }  from '../../types/surface.types'
+import { seededPrng } from '../internal/prng'
+import type { PlanetConfig } from '../types/body/config.types'
+import type { SurfaceLook }  from '../types/surface.types'
 import type {
   FeatureGate,
   NumericRange,
   SeededBodyArchetype,
   ZoneConstraints,
-} from '../../types/generation.types'
+} from '../types/generation.types'
 
 /**
  * Map an archetype to the `SurfaceLook` the lib consumes. Stars are excluded

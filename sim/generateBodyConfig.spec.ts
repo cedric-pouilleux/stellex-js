@@ -19,7 +19,7 @@ import type {
   FeatureGate,
   NumericRange,
   ZoneConstraints,
-} from '../../types/generation.types'
+} from '../types/generation.types'
 
 // ─────────────────────────────────────────────────────────────────────
 // Fixtures — 2 zones réalistes + 1 zone "tout interdit" pour les bornes

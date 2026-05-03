@@ -3,7 +3,7 @@
  *
  * Doctrine alignment: this module carries **no chemistry, no biomes, no
  * temperature, no gameplay vocabulary**. It only describes the physical and
- * visual envelope a body can be tirée within. Consumers extend
+ * visual envelope a body can be drawn within. Consumers extend
  * {@link ZoneConstraints} with their own domain types (biome pools, resource
  * lists, allowed substances, terraforming overrides…) and resolve those
  * fields after calling the generator.
