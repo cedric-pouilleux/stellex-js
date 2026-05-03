@@ -76,6 +76,10 @@ Toutes les sources d'aléatoire (FBM, distribution des cratères, variation des 
 - Vous pouvez encoder un état complet dans une URL en sérialisant uniquement le `BodyConfig` — le rendu est rejouable.
 - **Aucun appel à `Math.random()` nu** dans la lib. Si vous étendez le code (resources, factions, …), importez `seededPrng` depuis l'entry `sim` et scopez vos seeds : `seededPrng(name + ':resources')`.
 
+::: tip Pour aller plus loin — génération seedée par contraintes
+Si votre projet doit générer un univers procédural complet (système solaire par utilisateur, secteurs publics, mondes scriptés) à partir d'enveloppes gameplay (zones orbitales, ranges autorisés, features probabilistes), voir [Génération seedée](/guides/seeded-generation). L'API `generateBodyConfig(seed, constraints)` étend le contrat de déterminisme du `name` au `BodyConfig` lui-même, avec un format de stockage compact (~80 octets/body) et la stabilité PRNG nécessaire au tuning game design en prod.
+:::
+
 ## 4. Le pipeline de rendu
 
 Pour un corps non-stellaire, `useBody(config, tileSize)` enchaîne :

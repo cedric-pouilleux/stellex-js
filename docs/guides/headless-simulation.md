@@ -76,6 +76,10 @@ console.log(sim.seaLevelElevation)
 
 Le frontend reconstruit géométrie et matériaux à partir du **même seed** : seul le `BodyConfig` traverse le réseau.
 
+::: tip Encore plus compact — `BodyDescriptor`
+Si votre serveur stocke des millions de planètes (un système solaire par utilisateur), transmettre un `BodyConfig` complet par body devient coûteux. La page [Génération seedée](/guides/seeded-generation) documente un format de stockage à ~80 octets par body — `{ seed, zoneId, genVersion, overrides }` — et la fonction `generateBodyConfig(seed, constraints)` qui reconstruit le `BodyConfig` côté client à partir d'un descriptor minimal.
+:::
+
 ## Pattern serveur → client
 
 ```ts

@@ -75,6 +75,7 @@ export default defineConfig({
             { text: 'Palettes & terrain',      link: '/guides/palettes-and-terrain'  },
             { text: 'Étoiles',                 link: '/guides/stars'                 },
             { text: 'Variation visuelle',      link: '/guides/variation'             },
+            { text: 'Génération seedée',       link: '/guides/seeded-generation'     },
             { text: 'Curseur de survol',       link: '/guides/hover-cursor'          },
             { text: 'Graphics uniforms',       link: '/guides/graphics-uniforms'     },
             { text: 'Intégrer du gameplay',    link: '/guides/gameplay-integration'  },
