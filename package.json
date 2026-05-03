@@ -1,6 +1,6 @@
 {
   "name": "@cedric-pouilleux/stellexjs",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "description": "Deterministic, playable celestial body generator for Three.js and Vue 3.",
   "license": "SEE LICENSE IN LICENSE",
