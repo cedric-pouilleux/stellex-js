@@ -1500,17 +1500,25 @@ export function toStarParams(cfg: StarPhysicsInput): {
 };
 
 // @public
-export function useBody(config: BodyConfig, tileSize: number, options?: {
-    sunLight?: THREE.PointLight | THREE.DirectionalLight | null;
-    palette?: TerrainLevel[];
-    hoverChannel?: HoverChannel;
+export function useBody(config: BodyConfig, tileSize: number, options?: UseBodyOptions): Body_2;
+
+// @public
+export interface UseBodyOptions {
+    defaultCursor?: string;
+    // (undocumented)
     graphicsUniforms?: GraphicsUniforms;
-    quality?: RenderQuality;
-    variation?: BodyVariation;
+    // (undocumented)
+    hoverChannel?: HoverChannel;
     hoverCursor?: HoverCursorConfig;
     hoverCursors?: HoverCursorPresets;
-    defaultCursor?: string;
-}): Body_2;
+    // (undocumented)
+    palette?: TerrainLevel[];
+    // (undocumented)
+    quality?: RenderQuality;
+    sunLight?: THREE.PointLight | THREE.DirectionalLight | null;
+    // (undocumented)
+    variation?: BodyVariation;
+}
 
 // @public
 export interface WarmupOptions {
