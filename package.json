@@ -1,6 +1,6 @@
 {
   "name": "@cedric-pouilleux/stellexjs",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "type": "module",
   "description": "Deterministic, playable celestial body generator for Three.js and Vue 3.",
   "license": "SEE LICENSE IN LICENSE",
@@ -36,7 +36,7 @@
   "peerDependencies": {
     "@tresjs/core": "^5.8.0",
     "simplex-noise": "^4.0.0",
-    "three": "^0.183.0",
+    "three": "^0.184.0",
     "vue": "^3.5.0"
   },
   "peerDependenciesMeta": {
@@ -56,14 +56,14 @@
     "@vitejs/plugin-vue": "^6.0.0",
     "esbuild": "^0.28.0",
     "simplex-noise": "^4.0.0",
-    "three": "^0.183.0",
+    "three": "^0.184.0",
     "typescript": "^6.0.0",
     "vite": "^8.0.0",
     "vue": "^3.5.0",
     "vue-tsc": "^3.0.0"
   },
   "dependencies": {
-    "three-mesh-bvh": "^0.9.9"
+    "three-mesh-bvh": "^0.9.10"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.60.2"
