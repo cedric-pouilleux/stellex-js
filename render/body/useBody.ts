@@ -3,8 +3,9 @@ import { generateHexasphere } from '../../geometry/hexasphere'
 import { initBodySimulation } from '../../sim/BodySimulation'
 import type { BodyConfig } from '../../types/body.types'
 import type { TerrainLevel } from '../types/terrain.types'
-import type { Body, PlanetBody, BoardTileRef } from '../types/bodyHandle.types'
+import type { Body, PlanetBody, BoardTileRef, InteractiveView } from '../types/bodyHandle.types'
 import { generateBodyVariation } from './bodyVariation'
+import { disableGroupRaycast } from './bodyRaycast'
 import { useStar } from './useStar'
 import { strategyFor } from './bodyTypeStrategy'
 import { createHoverChannel, type HoverChannel } from '../state/hoverState'
@@ -67,6 +68,21 @@ export interface UseBodyOptions {
   hoverCursors?:     HoverCursorPresets
   /** Initial preset name when `hoverCursors` is supplied. */
   defaultCursor?:    string
+  /**
+   * View applied right after construction. Omitted → the body keeps its
+   * assembled default (smooth display sphere visible, atmo halo shell not
+   * yet mounted). Pass `'shader'` for a ready-to-display overview without
+   * having to call `view.set()` by hand. Ignored by stars (no view switch).
+   */
+  initialView?:      InteractiveView
+  /**
+   * When `false`, every renderable mesh of the body is made transparent to
+   * scene raycasting (display-only), so a caller can place its own hitbox
+   * and pick it without the atmo shell or smooth sphere intercepting the
+   * ray. Interactive hover queries (hex picking) are unaffected — they run
+   * through a dedicated proxy. Defaults to `true`.
+   */
+  raycastable?:      boolean
 }
 
 /**
@@ -131,6 +147,7 @@ export function useBody(
       hoverCursor:   options?.hoverCursor,
       hoverCursors:  options?.hoverCursors,
       defaultCursor: options?.defaultCursor,
+      raycastable:   options?.raycastable,
     })
   }
 
@@ -400,5 +417,12 @@ export function useBody(
       paintAtmoShell:      atmoShell ? atmoShell.paintFromTiles : () => { /* noop */ },
     },
   }
+
+  // Apply the requested initial view before disabling raycast, so the atmo
+  // halo shell (mounted lazily by the view switcher) is part of the subtree
+  // when we silence it.
+  if (options?.initialView) setView(options.initialView)
+  if (options?.raycastable === false) disableGroupRaycast(group)
+
   return planet
 }

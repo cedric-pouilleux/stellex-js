@@ -34,6 +34,21 @@ const _occluderNear   = new THREE.Vector3()
 // ── Public API ───────────────────────────────────────────────────────
 
 /**
+ * Makes every object under `root` transparent to scene raycasting by
+ * replacing its `raycast` method with a no-op. Used for display-only bodies
+ * whose picking is delegated to a caller-owned hitbox — the body's own meshes
+ * (atmo shell, smooth sphere) must not intercept the ray and swallow the
+ * click. One-way by design: a display body never needs to become raycastable
+ * again, and restoring the per-class prototype methods would be brittle.
+ *
+ * Interactive hover queries are unaffected: they run through a dedicated
+ * proxy mesh kept outside the scene graph, not through `intersectObjects`.
+ */
+export function disableGroupRaycast(root: THREE.Object3D): void {
+  root.traverse(obj => { obj.raycast = () => {} })
+}
+
+/**
  * Walks up the scene graph to find which body index owns a given object.
  * Returns -1 when no match is found.
  */

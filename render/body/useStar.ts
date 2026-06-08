@@ -12,6 +12,7 @@ import { buildPlanetMesh, buildStarSmoothMesh } from './buildPlanetMesh'
 import { buildInteractiveMesh } from './buildInteractiveMesh'
 import { buildBodyHoverOverlay } from '../shells/buildBodyHoverOverlay'
 import { makeInteractiveController } from './interactiveController'
+import { disableGroupRaycast } from './bodyRaycast'
 import { accelerateRaycast } from '../lighting/accelerateRaycast'
 import { mountHoverCursor } from '../hover/mountHoverCursor'
 import type { HoverCursorConfig, HoverCursorPresets } from '../types/hoverCursor.types'
@@ -52,6 +53,12 @@ export interface UseStarInputs {
   hoverCursors?:    HoverCursorPresets
   /** Initial preset name when `hoverCursors` is supplied. */
   defaultCursor?:   string
+  /**
+   * When `false`, the star's renderable meshes are made transparent to scene
+   * raycasting (display-only). See {@link import('./useBody').UseBodyOptions.raycastable}.
+   * Defaults to `true`.
+   */
+  raycastable?:     boolean
 }
 
 /**
@@ -71,7 +78,7 @@ export function useStar(inputs: UseStarInputs): StarBody {
   const {
     config, sim, palette, variation, tileCount,
     hoverChannel, graphicsUniforms, quality, strategy,
-    hoverCursor, hoverCursors, defaultCursor,
+    hoverCursor, hoverCursors, defaultCursor, raycastable,
   } = inputs
   const group = new THREE.Group()
 
@@ -159,6 +166,10 @@ export function useStar(inputs: UseStarInputs): StarBody {
     }
     return warmupBody(renderer, camera, phases, progressOptions)
   }
+
+  // Display-only stars (e.g. a system's central sun used purely as a light
+  // source) opt out of scene raycasting so a caller hitbox can win.
+  if (raycastable === false) disableGroupRaycast(group)
 
   return {
     kind: 'star',

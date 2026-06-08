@@ -343,6 +343,52 @@ describe('useBody — sunLight option', () => {
   })
 })
 
+// ── Display-only options (initialView + raycastable) ────────────
+
+describe('useBody — display-only options', () => {
+  it('initialView "shader" mounts the atmo halo shell without a manual view.set()', () => {
+    // Default build leaves the atmo shell unmounted (parent === null); the
+    // view switcher only adds it on the shader / surface views. Passing
+    // initialView spares the caller the post-construction view.set('shader').
+    const idle = useBody(makeRockyConfig(), TILE_SIZE)
+    expect(idle.atmoShell?.mesh.parent).toBe(null)
+    idle.dispose()
+
+    const shown = useBody(makeRockyConfig(), TILE_SIZE, { initialView: 'shader' })
+    expect(shown.atmoShell?.mesh.parent).toBe(shown.group)
+    expect(shown.atmoShell?.mesh.visible).toBe(true)
+    shown.dispose()
+  })
+
+  it('raycastable:false makes the body transparent to scene raycasting', () => {
+    const ray = new THREE.Raycaster()
+    ray.set(new THREE.Vector3(0, 0, 5), new THREE.Vector3(0, 0, -1))
+
+    const pickable = useBody(makeRockyConfig(1), TILE_SIZE, { initialView: 'shader' })
+    pickable.group.updateMatrixWorld(true)
+    expect(ray.intersectObject(pickable.group, true).length).toBeGreaterThan(0)
+    pickable.dispose()
+
+    const silent = useBody(makeRockyConfig(1), TILE_SIZE, {
+      initialView: 'shader',
+      raycastable: false,
+    })
+    silent.group.updateMatrixWorld(true)
+    expect(ray.intersectObject(silent.group, true)).toHaveLength(0)
+    silent.dispose()
+  })
+
+  it('raycastable:false also silences a display-only star', () => {
+    const ray = new THREE.Raycaster()
+    ray.set(new THREE.Vector3(0, 0, 5), new THREE.Vector3(0, 0, -1))
+
+    const star = useBody(makeStarConfig(1), TILE_SIZE, { raycastable: false })
+    star.group.updateMatrixWorld(true)
+    expect(ray.intersectObject(star.group, true)).toHaveLength(0)
+    star.dispose()
+  })
+})
+
 // â”€â”€ Surface liquid honoured on every non-stellar type â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe('useBody â€” surface liquid', () => {
